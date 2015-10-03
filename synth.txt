@@ -1,0 +1,8 @@
+"Welcome to VoCoMi. What do you want to play"
+"Welcome to the first Voice Controlled Mixer. What do you want to play?"
+"Which chord do you want to play?"
+"Which note do you want to play?"
+"Do you want to play male or female voice?"
+"Which drums element do you want to play?"
+"Please, can you repeat, I didn't understand the last sentence"
+"Track cleared. You can start a new song now!"
