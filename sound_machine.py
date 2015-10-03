@@ -47,7 +47,7 @@ class State():
     PLAYING = 2
 
     currentState = 2
-    currentGroup = 0
+    currentGroup = []
     currentSample = 0
     currentBeat = 0
     lastTime = round(time.time() * 1000.0)
@@ -65,24 +65,18 @@ def main():
     """ Audio engine init """
     pygame.mixer.pre_init(44100)
     pygame.mixer.init()
-    #play_sound('assets/voice.wav')
-    sounds = [[
-        pygame.mixer.Sound('assets/kick2.wav'),
-        pygame.mixer.Sound('assets/pad.wav'),
-        pygame.mixer.Sound('assets/candy.wav'),
-        pygame.mixer.Sound('assets/guitar.wav'),
-        pygame.mixer.Sound('assets/guitar_short.wav'),
-        pygame.mixer.Sound('assets/guitar_distort.wav'),
-        pygame.mixer.Sound('assets/dubstep.wav'),
-    ]]
-    #State.score[0].append(kick_sound)
-    #State.score[1].append(kick_sound)
-    #State.score[2].append(kick_sound)
-    #State.score[3].append(kick_sound)
-    #State.score[4].append(kick_sound)
-    #State.score[5].append(kick_sound)
-    #State.score[6].append(kick_sound)
-    #State.score[7].append(kick_sound)
+    sounds = {
+        'random': [
+            pygame.mixer.Sound('assets/kick2.wav'),
+            pygame.mixer.Sound('assets/pad.wav'),
+            pygame.mixer.Sound('assets/candy.wav'),
+            pygame.mixer.Sound('assets/guitar.wav'),
+            pygame.mixer.Sound('assets/guitar_short.wav'),
+            pygame.mixer.Sound('assets/guitar_distort.wav'),
+            pygame.mixer.Sound('assets/dubstep.wav'),
+        ]
+    }
+    State.currentGroup = sounds['random']
     time.sleep(1)
     """ Main loop """
     bpm = 280.0
@@ -94,9 +88,9 @@ def main():
                 # we can block if needed, probably
                 gotIntent = False
                 if gotIntent:
-                    State.currentGroup = 0 # fill with selection
+                    State.currentGroup = sounds['random'] # fill with selection
                     State.currentSample = 0
-                    sounds[State.currentGroup][State.currentSample]
+                    State.currentGroup[State.currentSample]
                     State.currentState = State.BROWSING
             elif State.currentState == State.BROWSING:
                 if myo.pose == libmyo.Pose.wave_in:
@@ -104,10 +98,10 @@ def main():
                     print("next sample")
                     myo.myo.vibrate('short')
                     State.currentSample += 1
-                    while State.currentSample >= len(sounds[State.currentGroup]):
-                        State.currentSample -= len(sounds[State.currentGroup])
+                    while State.currentSample >= len(State.currentGroup):
+                        State.currentSample -= len(State.currentGroup)
                     pygame.mixer.stop()
-                    sounds[State.currentGroup][State.currentSample].play()
+                    State.currentGroup[State.currentSample].play()
                 elif myo.pose == libmyo.Pose.wave_out:
                     myo.pose = None
                     print("previous sample")
@@ -115,8 +109,8 @@ def main():
                     pygame.mixer.stop()
                     State.currentSample -= 1; # mod nSamples for current group
                     while State.currentSample < 0:
-                        State.currentSample += len(sounds[State.currentGroup])
-                    sounds[State.currentGroup][State.currentSample].play()
+                        State.currentSample += len(State.currentGroup)
+                    State.currentGroup[State.currentSample].play()
                 elif myo.pose == libmyo.Pose.fist:
                     myo.pose = None
                     print("start playback")
@@ -141,18 +135,18 @@ def main():
                     myo.pose = None
                     print("add note")
                     myo.myo.vibrate('short')
-                    s = sounds[State.currentGroup][State.currentSample]
+                    s = State.currentGroup[State.currentSample]
                     State.score[State.currentBeat].append(s)
                 elif myo.pose == libmyo.Pose.double_tap:
                     myo.pose = None
                     print("play note")
                     myo.myo.vibrate('short')
-                    sounds[State.currentGroup][State.currentSample].play()
+                    State.currentGroup[State.currentSample].play()
                 elif myo.pose == libmyo.Pose.fist:
                     myo.pose = None
                     print("switch note")
                     myo.myo.vibrate('medium')
-                    sounds[State.currentGroup][State.currentSample].play()
+                    State.currentGroup[State.currentSample].play()
                     pygame.mixer.stop()
                     State.currentState = State.BROWSING
                 else:

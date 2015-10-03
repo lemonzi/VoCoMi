@@ -1,0 +1,8 @@
+myo (bundled)
+six (for myo, could be automated)
+pygame (manual installation from bitbucket)
+pyspeex (from Nuance github)
+pyaudio
+aiohttp
+
+brew: portaudio, speex, python3
