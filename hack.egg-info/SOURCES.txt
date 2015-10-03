@@ -1,5 +1,0 @@
-hack.egg-info/PKG-INFO
-hack.egg-info/SOURCES.txt
-hack.egg-info/dependency_links.txt
-hack.egg-info/requires.txt
-hack.egg-info/top_level.txt

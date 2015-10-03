@@ -10,96 +10,22 @@ class MyoListener(libmyo.DeviceListener):
     """
     MyoListener implementation. Return False from any function to
     stop the Hub.
+    Only works with a single Myo
     """
 
     def __init__(self):
         super(MyoListener, self).__init__()
-        self.orientation = None
         self.pose = None
-        self.emg_enabled = False
         self.locked = False
-        self.rssi = None
-        self.emg = None
 
     def on_connect(self, myo, timestamp, firmware_version):
         self.myo = myo
         myo.vibrate('short')
         myo.vibrate('short')
-        myo.request_rssi()
-        myo.request_battery_level()
-
-    def on_rssi(self, myo, timestamp, rssi):
-        self.rssi = rssi
 
     def on_pose(self, myo, timestamp, pose):
-        print pose
+        print(pose)
         self.pose = pose
-
-    def on_orientation_data(self, myo, timestamp, orientation):
-        self.orientation = orientation
-
-    def on_accelerometor_data(self, myo, timestamp, acceleration):
-        pass
-
-    def on_gyroscope_data(self, myo, timestamp, gyroscope):
-        pass
-
-    def on_emg_data(self, myo, timestamp, emg):
-        self.emg = emg
-
-    def on_unlock(self, myo, timestamp):
-        self.locked = False
-
-    def on_lock(self, myo, timestamp):
-        self.locked = True
-
-    def on_event(self, kind, event):
-        """
-        Called before any of the event callbacks.
-        """
-
-    def on_event_finished(self, kind, event):
-        """
-        Called after the respective event callbacks have been
-        invoked. This method is *always* triggered, even if one of
-        the callbacks requested the stop of the Hub.
-        """
-
-    def on_pair(self, myo, timestamp, firmware_version):
-        """
-        Called when a Myo armband is paired.
-        """
-
-    def on_unpair(self, myo, timestamp):
-        """
-        Called when a Myo armband is unpaired.
-        """
-
-    def on_disconnect(self, myo, timestamp):
-        """
-        Called when a Myo is disconnected.
-        """
-
-    def on_arm_sync(self, myo, timestamp, arm, x_direction, rotation,
-                    warmup_state):
-        """
-        Called when a Myo armband and an arm is synced.
-        """
-
-    def on_arm_unsync(self, myo, timestamp):
-        """
-        Called when a Myo armband and an arm is unsynced.
-        """
-
-    def on_battery_level_received(self, myo, timestamp, level):
-        """
-        Called when the requested battery level received.
-        """
-
-    def on_warmup_completed(self, myo, timestamp, warmup_result):
-        """
-        Called when the warmup completed.
-        """
 
 
 _sound_library = {}
@@ -157,6 +83,7 @@ def main():
     #State.score[5].append(kick_sound)
     #State.score[6].append(kick_sound)
     #State.score[7].append(kick_sound)
+    time.sleep(1)
     """ Main loop """
     bpm = 280.0
     period = (60.0/bpm) * 1000
@@ -174,7 +101,7 @@ def main():
             elif State.currentState == State.BROWSING:
                 if myo.pose == libmyo.Pose.wave_in:
                     myo.pose = None
-                    print "next sample"
+                    print("next sample")
                     myo.myo.vibrate('short')
                     State.currentSample += 1
                     while State.currentSample >= len(sounds[State.currentGroup]):
@@ -183,7 +110,7 @@ def main():
                     sounds[State.currentGroup][State.currentSample].play()
                 elif myo.pose == libmyo.Pose.wave_out:
                     myo.pose = None
-                    print "previous sample"
+                    print("previous sample")
                     myo.myo.vibrate('short')
                     pygame.mixer.stop()
                     State.currentSample -= 1; # mod nSamples for current group
@@ -192,9 +119,9 @@ def main():
                     sounds[State.currentGroup][State.currentSample].play()
                 elif myo.pose == libmyo.Pose.fist:
                     myo.pose = None
-                    print "start playback"
+                    print("start playback")
                     State.currentBeat = 0
-                    myo.myo.vibrate('long')
+                    myo.myo.vibrate('medium')
                     pygame.mixer.stop()
                     State.currentState = State.PLAYING
                 else:
@@ -212,19 +139,19 @@ def main():
                 """Check play gesture"""
                 if myo.pose == libmyo.Pose.fingers_spread:
                     myo.pose = None
-                    print "add note"
+                    print("add note")
                     myo.myo.vibrate('short')
                     s = sounds[State.currentGroup][State.currentSample]
                     State.score[State.currentBeat].append(s)
                 elif myo.pose == libmyo.Pose.double_tap:
                     myo.pose = None
-                    print "play note"
+                    print("play note")
                     myo.myo.vibrate('short')
                     sounds[State.currentGroup][State.currentSample].play()
                 elif myo.pose == libmyo.Pose.fist:
                     myo.pose = None
-                    print "switch note"
-                    myo.myo.vibrate('long')
+                    print("switch note")
+                    myo.myo.vibrate('medium')
                     sounds[State.currentGroup][State.currentSample].play()
                     pygame.mixer.stop()
                     State.currentState = State.BROWSING
