@@ -15,16 +15,14 @@ class MyoListener(libmyo.DeviceListener):
     def __init__(self):
         super(MyoListener, self).__init__()
         self.orientation = None
-        self.pose = libmyo.Pose.rest
+        self.pose = None
         self.emg_enabled = False
         self.locked = False
         self.rssi = None
         self.emg = None
-        self.events = {
-            'openHand': False
-        }
 
     def on_connect(self, myo, timestamp, firmware_version):
+        self.myo = myo
         myo.vibrate('short')
         myo.vibrate('short')
         myo.request_rssi()
@@ -34,13 +32,7 @@ class MyoListener(libmyo.DeviceListener):
         self.rssi = rssi
 
     def on_pose(self, myo, timestamp, pose):
-        if pose == libmyo.Pose.double_tap:
-            myo.set_stream_emg(libmyo.StreamEmg.enabled)
-            self.emg_enabled = True
-        elif pose == libmyo.Pose.fingers_spread:
-            myo.set_stream_emg(libmyo.StreamEmg.disabled)
-            self.emg_enabled = False
-            self.emg = None
+        print pose
         self.pose = pose
 
     def on_orientation_data(self, myo, timestamp, orientation):
@@ -140,8 +132,6 @@ def main():
     """ MYO init """
     libmyo.init()
     print("Connecting to Myo ... Use CTRL^C to exit.")
-    print("If nothing happens, make sure the Bluetooth adapter is plugged in,")
-    print("Myo Connect is running and your Myo is put on.")
     hub = libmyo.Hub()
     hub.set_locking_policy(libmyo.LockingPolicy.none)
     myo = MyoListener()
@@ -149,21 +139,26 @@ def main():
     """ Audio engine init """
     pygame.mixer.pre_init(44100)
     pygame.mixer.init()
-    #clock = pygame.time.Clock()
     #play_sound('assets/voice.wav')
-    kick_sound = pygame.mixer.Sound('assets/kick.wav')
-    cow_sound = pygame.mixer.Sound('assets/cow.wav')
-    sounds = [[kick_sound, cow_sound]]
-    State.score[0].append(kick_sound)
-    State.score[1].append(kick_sound)
-    State.score[2].append(kick_sound)
-    State.score[3].append(kick_sound)
-    State.score[4].append(kick_sound)
-    State.score[5].append(kick_sound)
-    State.score[6].append(kick_sound)
-    State.score[7].append(kick_sound)
+    sounds = [[
+        pygame.mixer.Sound('assets/kick2.wav'),
+        pygame.mixer.Sound('assets/pad.wav'),
+        pygame.mixer.Sound('assets/candy.wav'),
+        pygame.mixer.Sound('assets/guitar.wav'),
+        pygame.mixer.Sound('assets/guitar_short.wav'),
+        pygame.mixer.Sound('assets/guitar_distort.wav'),
+        pygame.mixer.Sound('assets/dubstep.wav'),
+    ]]
+    #State.score[0].append(kick_sound)
+    #State.score[1].append(kick_sound)
+    #State.score[2].append(kick_sound)
+    #State.score[3].append(kick_sound)
+    #State.score[4].append(kick_sound)
+    #State.score[5].append(kick_sound)
+    #State.score[6].append(kick_sound)
+    #State.score[7].append(kick_sound)
     """ Main loop """
-    bpm = 320.0
+    bpm = 280.0
     period = (60.0/bpm) * 1000
     try:
         while hub.running:
@@ -172,38 +167,69 @@ def main():
                 # we can block if needed, probably
                 gotIntent = False
                 if gotIntent:
-                    State.currentGroup = 0; # fill with selection
+                    State.currentGroup = 0 # fill with selection
+                    State.currentSample = 0
+                    sounds[State.currentGroup][State.currentSample]
                     State.currentState = State.BROWSING
             elif State.currentState == State.BROWSING:
-                # play first sample in group (in a loop?)
-                # wait for myo sweep, if applicable
-                if myo.events['sweepLeft']:
-                    State.currentSample += 1; 
+                if myo.pose == libmyo.Pose.wave_in:
+                    myo.pose = None
+                    print "next sample"
+                    myo.myo.vibrate('short')
+                    State.currentSample += 1
                     while State.currentSample >= len(sounds[State.currentGroup]):
                         State.currentSample -= len(sounds[State.currentGroup])
-                    sounds[x].play()
-                if myo.events['sweepRight']:
+                    pygame.mixer.stop()
+                    sounds[State.currentGroup][State.currentSample].play()
+                elif myo.pose == libmyo.Pose.wave_out:
+                    myo.pose = None
+                    print "previous sample"
+                    myo.myo.vibrate('short')
+                    pygame.mixer.stop()
                     State.currentSample -= 1; # mod nSamples for current group
                     while State.currentSample < 0:
                         State.currentSample += len(sounds[State.currentGroup])
                     sounds[State.currentGroup][State.currentSample].play()
-                pass
+                elif myo.pose == libmyo.Pose.fist:
+                    myo.pose = None
+                    print "start playback"
+                    State.currentBeat = 0
+                    myo.myo.vibrate('long')
+                    pygame.mixer.stop()
+                    State.currentState = State.PLAYING
+                else:
+                    pass
             elif State.currentState == State.PLAYING:
-                """Metronome"""
                 currentTime = int(time.time() * 1000.0)
                 delta = currentTime - State.lastTime;
                 if delta > period:
+                    for s in State.score[State.currentBeat]:
+                        s.play()
                     State.lastTime = currentTime
                     State.currentBeat += 1
                     if State.currentBeat == NBEATS:
                         State.currentBeat = 0
-                    for s in State.score[State.currentBeat]:
-                        s.play()
                 """Check play gesture"""
-                if myo.events['openHand']:
+                if myo.pose == libmyo.Pose.fingers_spread:
+                    myo.pose = None
+                    print "add note"
+                    myo.myo.vibrate('short')
                     s = sounds[State.currentGroup][State.currentSample]
                     State.score[State.currentBeat].append(s)
-                    myo.events['openHand'] = False
+                elif myo.pose == libmyo.Pose.double_tap:
+                    myo.pose = None
+                    print "play note"
+                    myo.myo.vibrate('short')
+                    sounds[State.currentGroup][State.currentSample].play()
+                elif myo.pose == libmyo.Pose.fist:
+                    myo.pose = None
+                    print "switch note"
+                    myo.myo.vibrate('long')
+                    sounds[State.currentGroup][State.currentSample].play()
+                    pygame.mixer.stop()
+                    State.currentState = State.BROWSING
+                else:
+                    pass
             else:
                 pass
     finally:
