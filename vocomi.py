@@ -118,7 +118,7 @@ def main():
                         other_options = ','.join(options[:-1])
                         say("We currently have %s and %s samples in our database." % (other_options, last_option))
                     elif intent['intent'] == 'Modify_instrument_track':
-                        if 'Instruments' not in intent['concepts']:
+                        if 'concepts' not in intent or 'Instruments' not in intent['concepts']:
                             pass
                         instrument = intent['concepts']['Instruments']
                         if instrument in sounds['double']:
@@ -130,7 +130,7 @@ def main():
                             say("You can now browse the %d %s samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                             State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Select_drum_track':
-                        if 'Drum_track' not in intent['concepts']:
+                        if 'concepts' not in intent or 'Drum_track' not in intent['concepts']:
                             pass
                         instrument = intent['concepts']['Drum_track']
                         State.currentGroup = sounds['double']['drums'][instrument] # fill with selection
@@ -139,7 +139,7 @@ def main():
                         say("You can now browse the %d %s drum samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Select_voice_track':
-                        if 'Voice_track' not in intent['concepts']:
+                        if 'concepts' not in intent or 'Voice_track' not in intent['concepts']:
                             pass
                         instrument = intent['concepts']['Voice_track']
                         State.currentGroup = sounds['double']['voice'][instrument] # fill with selection
@@ -148,7 +148,7 @@ def main():
                         say("You can now browse the %d %s voice samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Set_and_modify':
-                        if 'Instruments' not in intent['concepts']:
+                        if 'concepts' not in intent or 'Instruments' not in intent['concepts']:
                             pass
                         instrument = intent['concepts']['Instruments']
                         if instrument in sounds['single']:
