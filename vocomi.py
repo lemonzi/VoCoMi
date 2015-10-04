@@ -108,39 +108,46 @@ def main():
             # LISTENING for instructions
             #
             if State.currentState == State.LISTENING:
-                say("What would you like me to do?")
-                intent = nuance.get_intent()
-                if not intent:
-                    continue
-                elif intent['intent'] == 'Clear':
-                    print("clear score")
-                    State.score = [[] for x in range(NBEATS)]
-                    say("Your mix has been cleared. What should we do next?")
-                elif intent['intent'] == 'List_options':
-                    print("list options")
-                    #if 'Instruments' in intent['concepts']:
-                    #    options = sounds[intent['concepts']['Instruments']].keys()
-                    #else:
-                    options = list(sounds.keys())
-                    last_option = options[-1]
-                    other_options = ','.join(options[:-1])
-                    say("We currently have %s and %s samples in our database." % (other_options, last_option))
-                elif intent['intent'] == 'Modify_instrument_track':
-                    #say("Please, be more specific. Which %s sample do you want?" % intent['concepts']['Instruments'])
-                    instrument = intent['concepts']['Instruments']
-                    State.currentGroup = sounds[instrument] # fill with selection
-                    State.currentSample = random.randint(0, len(State.currentGroup)-1)
-                    State.currentState = State.BROWSING
-                    say("You can now browse %s samples by waving your hand. How about this one?" % instrument)
-                    State.currentGroup[State.currentSample].play()
-                elif intent['intent'] == 'Select_drum_track':
-                    pass
-                elif intent['intent'] == 'Select_guitar_chord':
-                    pass
-                elif intent['intent'] == 'Select_voice_track':
-                    pass
-                elif intent['intent'] == 'Set_and_modify':
-                    pass
+                #try:
+                    say("What would you like me to do?")
+                    intent = nuance.get_intent()
+                    if not intent:
+                        continue
+                    elif intent['intent'] == 'Exit':
+                        break
+                    elif intent['intent'] == 'Clear':
+                        print("clear score")
+                        State.score = [[] for x in range(NBEATS)]
+                        say("Your mix has been cleared. What should we do next?")
+                    elif intent['intent'] == 'List_options':
+                        print("list options")
+                        #if 'Instruments' in intent['concepts']:
+                        #    options = sounds[intent['concepts']['Instruments']].keys()
+                        #else:
+                        options = list(sounds.keys())
+                        last_option = options[-1]
+                        other_options = ','.join(options[:-1])
+                        say("We currently have %s and %s samples in our database." % (other_options, last_option))
+                    elif intent['intent'] == 'Modify_instrument_track':
+                        #say("Please, be more specific. Which %s sample do you want?" % intent['concepts']['Instruments'])
+                        if 'Instruments' not in intent['concepts']:
+                            pass
+                        instrument = intent['concepts']['Instruments']
+                        State.currentGroup = sounds[instrument] # fill with selection
+                        State.currentSample = random.randint(0, len(State.currentGroup)-1)
+                        State.currentState = State.BROWSING
+                        say("You can now browse %s samples by waving your hand. How about this one?" % instrument)
+                        State.currentGroup[State.currentSample].play()
+                    elif intent['intent'] == 'Select_drum_track':
+                        pass
+                    elif intent['intent'] == 'Select_guitar_chord':
+                        pass
+                    elif intent['intent'] == 'Select_voice_track':
+                        pass
+                    elif intent['intent'] == 'Set_and_modify':
+                        pass
+                #except:
+                #    pass
             #
             # BROWSE sounds
             #
