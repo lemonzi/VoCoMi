@@ -113,7 +113,8 @@ def main():
                         if 'concepts' in intent and 'Instruments' in intent['concepts'] and intent['concepts']['Instruments'] in sounds['double'] :
                             options = list(sounds['double'][intent['concepts']['Instruments']].keys())
                         else:
-                            options = list(sounds['single'].keys()).append(list(sounds['double'].keys()))
+                            options = list(sounds['single'].keys())
+                            options.append(list(sounds['double'].keys()))
                         last_option = options[-1]
                         other_options = ','.join(options[:-1])
                         say("We currently have %s and %s samples in our database." % (other_options, last_option))
