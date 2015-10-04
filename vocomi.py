@@ -2,7 +2,7 @@ import pygame
 import os
 import samplebank
 import myo as libmyo
-import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json', 0)
+import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json', 1)
 import time
 import sys
 import random
@@ -168,6 +168,9 @@ def main():
                         State.currentState = State.BROWSING
                         say("You can now browse the %d %s samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                         State.currentGroup[State.currentSample].play()
+                    elif intent['intent'] == 'Playback':
+                        State.currentState = State.PLAYING
+
                 except:
                     say("Something crashed.")
             #
