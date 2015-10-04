@@ -94,7 +94,7 @@ def main():
             # LISTENING for instructions
             #
             if State.currentState == State.LISTENING:
-                #try:
+                try:
                     say(random.choice([
                         "What would you like me to do?",
                         "What should we do next?"
@@ -168,8 +168,8 @@ def main():
                         State.currentState = State.BROWSING
                         say("You can now browse the %d %s samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                         State.currentGroup[State.currentSample].play()
-                #except:
-                #    pass
+                except:
+                    say("Something crashed.")
             #
             # BROWSE sounds
             #
