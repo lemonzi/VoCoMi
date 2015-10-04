@@ -6,3 +6,5 @@
 "Which drums element do you want to play?"
 "Please, can you repeat, I didn't understand the last sentence"
 "Track cleared. You can start a new song now!"
+"Yes"
+"No"
