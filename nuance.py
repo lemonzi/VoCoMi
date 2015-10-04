@@ -447,7 +447,7 @@ def _list_all(audio):
         print(audio.get_device_info_by_index(i))
 
 
-def _pick_recording_parameters(audio, dev_index):
+def _pick_recording_parameters(audio, dev_index=0):
     rates = [16000, 32000, 48000, 96000, 192000, 22050, 44100, 88200, 8000, 11025]
     channels = [1, 2]
 

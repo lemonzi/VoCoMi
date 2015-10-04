@@ -95,10 +95,10 @@ def main():
             #
             if State.currentState == State.LISTENING:
                 #try:
-                    say(random.choice[
+                    say(random.choice([
                         "What would you like me to do?",
                         "What should we do next?"
-                    ])
+                    ]))
                     intent = nuance.get_intent()
                     if not intent:
                         continue
