@@ -2,7 +2,7 @@ import numpy
 
 mean = 10
 d = 0.95
-th = -30
+th = -10
 count = 0
 
 def clear():
