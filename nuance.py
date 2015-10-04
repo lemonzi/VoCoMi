@@ -288,7 +288,7 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
     print('Recording, press any key to stop...')
     
     vad.clear()
-    while not keytask.done() and not vad.silence():
+    while not keytask.done():
         while len(rawaudio) > 320*recorder.channels*2:
             count = len(rawaudio)
             if count > 320*4*recorder.channels*2:
@@ -319,7 +319,8 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
 
         if audiotask.done():
             more_audio = audiotask.result()
-            vad.update(more_audio)
+            if not vad.update(more_audio):
+                keyevent.set()
             rawaudio += more_audio
             audiotask = asyncio.async(recorder.dequeue())
 
@@ -337,7 +338,6 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
 
             receivetask = asyncio.async(client.receive())
 
-    loop.remove_reader(sys.stdin)
 
     client.send_message({
         'message': 'audio_end',

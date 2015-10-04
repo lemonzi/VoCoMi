@@ -217,7 +217,7 @@ def main():
                 pass
     finally:
         print("Shutting down...")
-        say("Thank you for using our demo. We are powered by Nuance speech technologies and the Myo armband.")
+        say("Thank you for using our demo. Vocomi is powered by Nuance speech technologies and the Myo armband.")
         hub.shutdown()
         pygame.quit()
 
