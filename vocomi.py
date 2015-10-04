@@ -119,7 +119,7 @@ def main():
                         say("We currently have %s and %s samples in our database." % (other_options, last_option))
                     elif intent['intent'] == 'Modify_instrument_track':
                         if 'concepts' not in intent or 'Instruments' not in intent['concepts']:
-                            pass
+                            continue
                         instrument = intent['concepts']['Instruments']
                         if instrument in sounds['double']:
                             say("Please, be more specific. Which %s sample do you want?" % instrument)
@@ -131,7 +131,7 @@ def main():
                             State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Select_drum_track':
                         if 'concepts' not in intent or 'Drum_track' not in intent['concepts'] or len(intent['concepts']['Drum_track']) == 0:
-                            pass
+                            continue
                         instrument = intent['concepts']['Drum_track']
                         State.currentGroup = sounds['double']['drums'][instrument]
                         State.currentSample = random.randint(0, len(State.currentGroup)-1)
@@ -140,7 +140,7 @@ def main():
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Select_voice_track':
                         if 'concepts' not in intent or 'Voice_track' not in intent['concepts'] or len(intent['concepts']['Voice_track']) == 0:
-                            pass
+                            continue
                         instrument = intent['concepts']['Voice_track']
                         State.currentGroup = sounds['double']['voice'][instrument] # fill with selection
                         State.currentSample = random.randint(0, len(State.currentGroup)-1)
@@ -149,7 +149,7 @@ def main():
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Set_and_modify':
                         if 'concepts' not in intent or 'Instruments' not in intent['concepts']:
-                            pass
+                            continue
                         instrument = intent['concepts']['Instruments']
                         if instrument in sounds['single']:
                             State.currentGroup = sounds['single'][instrument]
