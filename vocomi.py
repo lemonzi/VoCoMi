@@ -1,10 +1,25 @@
 import pygame
 import os
 import myo as libmyo
+import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json')
 import time
 import sys
 
 os.nice(20)
+
+
+sayings = {}
+def say(what):
+    if what in sayings:
+        sayings['what'].play()
+        time.sleep(sayings['what'].get_length())
+    else:
+        b = nuance.say(what, 44100)
+        s = pygame.mixer.Sound(buffer=b)
+        sayings['what'] = s
+        s.play()
+        time.sleep(s.get_length())
+
 
 class MyoListener(libmyo.DeviceListener):
     """
@@ -46,7 +61,7 @@ class State():
     BROWSING = 1
     PLAYING = 2
 
-    currentState = 2
+    currentState = 0
     currentGroup = []
     currentSample = 0
     currentBeat = 0
@@ -63,35 +78,61 @@ def main():
     myo = MyoListener()
     hub.run(1000, myo)
     """ Audio engine init """
-    pygame.mixer.pre_init(44100)
-    pygame.mixer.init()
+    pygame.mixer.init(44100, channels=1)
     sounds = {
         'random': [
-            pygame.mixer.Sound('assets/kick2.wav'),
-            pygame.mixer.Sound('assets/pad.wav'),
-            pygame.mixer.Sound('assets/candy.wav'),
-            pygame.mixer.Sound('assets/guitar.wav'),
-            pygame.mixer.Sound('assets/guitar_short.wav'),
-            pygame.mixer.Sound('assets/guitar_distort.wav'),
-            pygame.mixer.Sound('assets/dubstep.wav'),
+            pygame.mixer.Sound('assets/samples/drum/kick/kick2.wav'),
+            pygame.mixer.Sound('assets/samples/random/pad.wav'),
+            pygame.mixer.Sound('assets/samples/random/candy.wav'),
+            pygame.mixer.Sound('assets/samples/random/guitar.wav'),
+            pygame.mixer.Sound('assets/samples/random/guitar_short.wav'),
+            pygame.mixer.Sound('assets/samples/random/guitar_distort.wav'),
+            pygame.mixer.Sound('assets/samples/random/dubstep.wav'),
         ]
     }
     State.currentGroup = sounds['random']
     time.sleep(1)
+    say("Welcome to VoCoMi")
     """ Main loop """
     bpm = 280.0
     period = (60.0/bpm) * 1000
     try:
         while hub.running:
+            #
+            #LISTENING for instructions
+            #
             if State.currentState == State.LISTENING:
-                # get audio input, send to nuance, get sample
-                # we can block if needed, probably
-                gotIntent = False
-                if gotIntent:
-                    State.currentGroup = sounds['random'] # fill with selection
+                say("What would you like me to do?")
+                intent = nuance.get_intent()
+                if not intent:
+                    continue
+                elif intent['intent'] == 'Clear':
+                    State.score = [[] for x in range(NBEATS)]
+                    say("Your mix has been cleared. What should we do next?")
+                elif intent['intent'] == 'List_options':
+                    if 'Instruments' in intent['concepts']:
+                        options = sounds[intent['concepts']['Instruments']].keys()
+                    else:
+                        options = sounds.keys()
+                    last_option = options[-1]
+                    other_options = str.join(options[:-1], ', ')
+                    say("We currently have %s and %s in our database." % other_options, last_option)
+                elif intent['intent'] == 'Modify_instrument_track':
+                    say("Please, be more specific. Which %d sample do you want?" % intent['concepts']['Instruments'])
+                elif intent['intent'] == 'Select_drum_track':
+                    pass
+                elif intent['intent'] == 'Select_guitar_chord':
+                    pass
+                elif intent['intent'] == 'Select_voice_track':
+                    pass
+                elif intent['intent'] == 'Select_and_modify':
+                    State.currentGroup = sounds[intent['concepts']['Instruments']] # fill with selection
                     State.currentSample = 0
                     State.currentGroup[State.currentSample]
                     State.currentState = State.BROWSING
+            #
+            #BROWSE sounds
+            #
             elif State.currentState == State.BROWSING:
                 if myo.pose == libmyo.Pose.wave_in:
                     myo.pose = None
@@ -120,6 +161,9 @@ def main():
                     State.currentState = State.PLAYING
                 else:
                     pass
+            #
+            #PLAY stuff
+            #
             elif State.currentState == State.PLAYING:
                 currentTime = int(time.time() * 1000.0)
                 delta = currentTime - State.lastTime;
@@ -148,13 +192,14 @@ def main():
                     myo.myo.vibrate('medium')
                     State.currentGroup[State.currentSample].play()
                     pygame.mixer.stop()
-                    State.currentState = State.BROWSING
+                    State.currentState = State.LISTENING
                 else:
                     pass
             else:
                 pass
     finally:
         print("Shutting down...")
+        say("Thank you for using our demo. We are powered by Nuance speech technologies and the Myo armband.")
         hub.shutdown()
         pygame.quit()
 

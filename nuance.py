@@ -134,6 +134,7 @@ class WebsocketConnection:
 
 
 def _log(obj,sending=False):
+    return
     print('>>>>' if sending else '<<<<')
     print('%s' % datetime.datetime.now())
     pprint.pprint(obj)
@@ -193,9 +194,8 @@ def _do_understand_text(loop, url, app_id, app_key, context_tag, text_to_underst
     })
 
     while True:
-        tp,msg = yield from client.receive()
+        tp, msg = yield from client.receive()
         _log(msg)
-
         if msg['message'] == 'query_end':
             break
 
@@ -233,7 +233,6 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
         client.send_message({
             'message': 'query_begin',
             'transaction_id': 123,
-
             'command': 'NDSP_ASR_APP_CMD',
             'language': 'eng-USA',
             'context_tag': context_tag,
@@ -242,20 +241,16 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
         client.send_message({
             'message': 'query_begin',
             'transaction_id': 123,
-
             'command': 'NVC_ASR_CMD', #'NDSP_ASR_APP_CMD',
             'language': 'eng-USA',
             'recognition_type': reco_model,
         })
 
-
     client.send_message({
         'message': 'query_parameter',
         'transaction_id': 123,
-
         'parameter_name': 'AUDIO_INFO',
         'parameter_type': 'audio',
-
         'audio_id': 456
     })
 
@@ -294,7 +289,7 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
 
             procsamples = b''
             if recorder.channels > 1:
-                for i in range(0,count,2*recorder.channels):
+                for i in range(0, count, 2*recorder.channels):
                     procsamples += rawaudio[i:i+1]
             else:
                 procsamples = rawaudio[:count]
@@ -320,13 +315,17 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
             rawaudio += more_audio
             audiotask = asyncio.async(recorder.dequeue())
 
+        result = None
         if receivetask.done():
             tp,msg = receivetask.result()
             _log(msg)
 
+            if msg['message'] == 'query_response' and msg['final_response'] == 1:
+                result = msg['nlu_interpretation_results']
+
             if msg['message'] == 'query_end':
                 client.close()
-                return
+                return result
 
             receivetask = asyncio.async(client.receive())
 
@@ -335,10 +334,14 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
         'audio_id': 456,
     })
 
+    result = None
     while True:
-        yield from asyncio.wait((receivetask,),loop=loop)
-        tp,msg = receivetask.result()
+        yield from asyncio.wait((receivetask,), loop=loop)
+        tp, msg = receivetask.result()
         _log(msg)
+
+        if msg['message'] == 'query_response' and msg['final_response'] == 1:
+            result = msg['nlu_interpretation_results']
 
         if msg['message'] == 'query_end':
             break
@@ -346,9 +349,10 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
         receivetask = asyncio.async(client.receive())
 
     client.close()
+    return result
 
 
-def _do_synthesis(loop, url, app_id, app_key, input_text, use_speex=None):
+def _do_synthesis(loop, url, app_id, app_key, input_text, sr=16000, use_speex=None):
 
     if use_speex is True and speex is None:
         print('ERROR: Speex encoding specified but python-speex module unavailable')
@@ -357,10 +361,10 @@ def _do_synthesis(loop, url, app_id, app_key, input_text, use_speex=None):
     if use_speex is not False and speex is not None:
         audio_type = 'audio/x-speex;mode=wb'
     else:
-        audio_type = 'audio/L16;rate=16000'
+        audio_type = 'audio/L16;rate=%d' % sr
 
     client = WebsocketConnection()
-    yield from client.connect(url, app_id, app_key)
+    a = yield from client.connect(url, app_id, app_key)
 
     client.send_message({
         'message': 'connect',
@@ -407,6 +411,8 @@ def _do_synthesis(loop, url, app_id, app_key, input_text, use_speex=None):
         print('ERROR: Need to implement decoding of %s!' % audio_type)
 
     pcm = b""
+    if speex:
+        resampler = speex.SpeexResampler(1, 16000, sr)
     while True:
         tp,msg = yield from client.receive()
 
@@ -418,12 +424,12 @@ def _do_synthesis(loop, url, app_id, app_key, input_text, use_speex=None):
             _log('Got %d bytes of audio' % len(msg))
             if decoder is not None:
                 tpcm = decoder.decode(msg)
-                pcm = pcm + tpcm
+                pcm = pcm + resampler.process(tpcm)
             else:
                 pcm = pcm + msg
 
     client.close()
-    yield pcm
+    return pcm
 
 
 def _list_all(audio):
@@ -489,9 +495,12 @@ class Recorder:
 class NuanceClient:
     url = 'https://httpapi.labs.nuance.com/v1'
 
-    def __init__(self, credentials, input_dev_idx=0):
+    def __init__(self, credentials, input_dev_idx=0, loop=None):
         self.credentials = credentials
-        self.loop = asyncio.get_event_loop()
+        if not loop:
+            self.loop = asyncio.get_event_loop()
+        else:
+            self.loop = loop
 
         self.input_dev_idx = input_dev_idx
         self.audio = pyaudio.PyAudio()
@@ -504,21 +513,24 @@ class NuanceClient:
         self.recorder = Recorder(self.rate, self.channels)
 
     def understand(self, context_tag):
-        self.recstream = self.audio.open(
+        recstream = self.audio.open(
             self.rate, 
             self.channels, 
             pyaudio.paInt16,
             input=True, 
             input_device_index=self.input_dev_idx, 
             stream_callback=self.recorder.callback)
-        self.loop.run_until_complete(_do_audio(
+        print("entering loop")
+        result = self.loop.run_until_complete(_do_audio(
             self.loop, 
             NuanceClient.url,
             self.credentials['app_id'],
             binascii.unhexlify(self.credentials['app_key']),
             context_tag=context_tag,
             recorder=self.recorder))
+        print("exiting loop")
         recstream.close()
+        return result
 
     def understand_text(self, context_tag, text):
         self.loop.run_until_complete(_do_understand_text(
@@ -530,7 +542,7 @@ class NuanceClient:
             text_to_understand=text))
         
     def recognize(self, reco_model):
-        self.recstream = self.audio.open(
+        recstream = self.audio.open(
             self.rate, 
             self.channels, 
             pyaudio.paInt16, 
@@ -546,13 +558,14 @@ class NuanceClient:
             recorder=self.recorder))
         recstream.close()
     
-    def synthesize(self, input_text):
-        data = yield from self.loop.run_until_complete(_do_synthesis(
+    def synthesize(self, input_text, sr=16000):
+        data = self.loop.run_until_complete(_do_synthesis(
             self.loop,
             NuanceClient.url,
             self.credentials['app_id'],
             binascii.unhexlify(self.credentials['app_key']),
-            input_text=input_text))
+            input_text=input_text,
+            sr=sr))
         return data
 
 
@@ -575,3 +588,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
