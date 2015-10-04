@@ -2,7 +2,7 @@ import pygame
 import os
 import samplebank
 import myo as libmyo
-import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json'); nuance.log = True
+import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json', 0)
 import time
 import sys
 import random
@@ -113,8 +113,7 @@ def main():
                         if 'concepts' in intent and 'Instruments' in intent['concepts'] and intent['concepts']['Instruments'] in sounds['double'] :
                             options = list(sounds['double'][intent['concepts']['Instruments']].keys())
                         else:
-                            options = list(sounds['single'].keys())
-                            options.append(list(sounds['double'].keys()))
+                            options = list(sounds['single'].keys()) + list(sounds['double'].keys())
                         last_option = options[-1]
                         other_options = ','.join(options[:-1])
                         say("We currently have %s and %s samples in our database." % (other_options, last_option))
@@ -131,16 +130,16 @@ def main():
                             say("You can now browse the %d %s samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                             State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Select_drum_track':
-                        if 'concepts' not in intent or 'Drum_track' not in intent['concepts']:
+                        if 'concepts' not in intent or 'Drum_track' not in intent['concepts'] or len(intent['concepts']['Drum_track']) == 0:
                             pass
                         instrument = intent['concepts']['Drum_track']
-                        State.currentGroup = sounds['double']['drums'][instrument] # fill with selection
+                        State.currentGroup = sounds['double']['drums'][instrument]
                         State.currentSample = random.randint(0, len(State.currentGroup)-1)
                         State.currentState = State.BROWSING
                         say("You can now browse the %d %s drum samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Select_voice_track':
-                        if 'concepts' not in intent or 'Voice_track' not in intent['concepts']:
+                        if 'concepts' not in intent or 'Voice_track' not in intent['concepts'] or len(intent['concepts']['Voice_track']) == 0:
                             pass
                         instrument = intent['concepts']['Voice_track']
                         State.currentGroup = sounds['double']['voice'][instrument] # fill with selection
@@ -155,14 +154,16 @@ def main():
                         if instrument in sounds['single']:
                             State.currentGroup = sounds['single'][instrument]
                         elif instrument in sounds['double']:
-                            if instrument == 'drums' and 'Drum_track' in intent['concepts']:
-                                State.currentgroup = sounds['double'][instrument][intent['concepts']['Drum_track']]
+                            if instrument == 'drums' and 'Drum_track' in intent['concepts'] and not intent['concepts']['Drum_track'] == {}:
+                                State.currentGroup = sounds['double'][instrument][intent['concepts']['Drum_track']]
                                 instrument = '%s drums' % intent['concepts']['Drum_track']
                             elif instrument == 'voice' and 'Voice_track' in intent['concepts']:
-                                State.currentgroup = sounds['double'][instrument][intent['concepts']['Voice_track']]
+                                State.currentGroup = sounds['double'][instrument][intent['concepts']['Voice_track']]
                                 instrument = '%s voice' % intent['concepts']['Voice_track']
                             else:
                                 say("Please, be more specific. Which %s sample do you want?" % instrument)
+                        else:
+                            continue
                         State.currentSample = random.randint(0, len(State.currentGroup)-1)
                         State.currentState = State.BROWSING
                         say("You can now browse the %d %s samples by waving your hand. How about this one?" % (len(State.currentGroup), instrument))

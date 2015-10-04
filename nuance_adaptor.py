@@ -9,10 +9,10 @@ CONTEXT = 'Project766_App363'
 
 class Nuance:
 
-    def __init__(self, cred_file):
+    def __init__(self, cred_file, input_dev_idx=0):
         with open(cred_file,'r') as f:
             cred = json.load(f)
-        self.client = NuanceClient(cred)
+        self.client = NuanceClient(cred, input_dev_idx=input_dev_idx)
         self.log = False
 
     def say(self, what, sr=44100):
