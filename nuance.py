@@ -269,8 +269,13 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
     else:
         encoder = speex.NBEncoder()
 
+    def _cb():
+        keyevent.set()
+        sys.stdin.readline()
+
     keyevent = asyncio.Event()
-    loop.add_reader(sys.stdin, keyevent.set)
+    sys.stdin.flush()
+    loop.add_reader(sys.stdin, _cb)
 
     keytask = asyncio.async(keyevent.wait())
     audiotask = asyncio.async(recorder.dequeue())
@@ -328,6 +333,8 @@ def _do_audio(loop, url, app_id, app_key, context_tag=None, reco_model=None, rec
                 return result
 
             receivetask = asyncio.async(client.receive())
+
+    loop.remove_reader(sys.stdin)
 
     client.send_message({
         'message': 'audio_end',
@@ -520,7 +527,6 @@ class NuanceClient:
             input=True, 
             input_device_index=self.input_dev_idx, 
             stream_callback=self.recorder.callback)
-        print("entering loop")
         result = self.loop.run_until_complete(_do_audio(
             self.loop, 
             NuanceClient.url,
@@ -528,7 +534,6 @@ class NuanceClient:
             binascii.unhexlify(self.credentials['app_key']),
             context_tag=context_tag,
             recorder=self.recorder))
-        print("exiting loop")
         recstream.close()
         return result
 

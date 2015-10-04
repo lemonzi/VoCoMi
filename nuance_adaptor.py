@@ -13,6 +13,7 @@ class Nuance:
         with open(cred_file,'r') as f:
             cred = json.load(f)
         self.client = NuanceClient(cred)
+        self.log = False
 
     def say(self, what, sr=44100):
         return self.client.synthesize(what, sr)
@@ -25,12 +26,17 @@ class Nuance:
             return self._parse_intent(r['payload']['interpretations'][0])
 
     def _parse_intent(self, raw):
-        if 'concepts' not in raw:
-            return None
+        if self.log:
+            pprint(raw)
         intent = raw['action']['intent']['value']
+        if intent == 'NO_MATCH':
+            return None
+        if 'concepts' not in raw:
+            return {'intent': intent}
         concepts = {}
         for concept,value in raw['concepts'].items():
-            concepts[concept] = value[0]['value']
+            if len(value) > 0 and 'value' in value[0]:
+                concepts[concept] = value[0]['value']
         return {'intent': intent, 'concepts': concepts}
 
 
