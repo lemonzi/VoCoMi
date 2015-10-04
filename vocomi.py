@@ -2,7 +2,7 @@ import pygame
 import os
 import samplebank
 import myo as libmyo
-import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json', 1)
+import nuance_adaptor; nuance = nuance_adaptor.Nuance('credentials.json', 0)
 import time
 import sys
 import random
