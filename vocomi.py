@@ -111,7 +111,7 @@ def main():
                     elif intent['intent'] == 'List_options':
                         print("list options")
                         if 'concepts' in intent and 'Instruments' in intent['concepts'] and intent['concepts']['Instruments'] in sounds['double'] :
-                            options = sounds['double'][intent['concepts']['Instruments']].keys()
+                            options = list(sounds['double'][intent['concepts']['Instruments']].keys())
                         else:
                             options = list(sounds['single'].keys())
                         last_option = options[-1]
