@@ -173,11 +173,14 @@ def main():
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Playback':
                         State.currentState = State.PLAYING
+<<<<<<< HEAD
                     elif intent['intent'] == 'YesNo':
                         if 'concepts' not in intent or 'Instruments' not in intent['concepts']: 
                             say("No, sorry. Currently this instument is not in our database.")
                         elif 'Instruments' in intent['concepts']:
                             say("Yes")
+=======
+>>>>>>> origin/master
                 except:
                     say("Ups, something crashed.")
             #
