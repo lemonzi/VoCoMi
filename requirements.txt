@@ -4,5 +4,6 @@ pygame (manual installation from bitbucket)
 pyspeex (from Nuance github)
 pyaudio
 aiohttp
+numpy
 
 brew: portaudio, speex, python3
