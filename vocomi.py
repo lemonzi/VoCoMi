@@ -2,7 +2,7 @@ import pygame
 import os
 import samplebank
 import myo as libmyo
-import nuance_adapto
+import nuance_adaptor
 import time
 import sys
 import random
