@@ -24,19 +24,18 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$(pwd)/myo-sdk/myo.framework
 # Our nuance worker
 nuance = nuance_adaptor.Nuance('credentials.json', INPUT_DEVICE)
 
-
 # Read a sentence with TTS. Keep an infinite local cache
-_sayings = {}
->>>>>>> origin/master
+sayings = {}
+
 def say(what):
-    if what in _sayings:
-        _sayings[what].play()
+    if what in sayings:
+        sayings[what].play()
         time.sleep(sayings[what].get_length())
     else:
         b = nuance.say(what, 44100)
         print(what)
         s = pygame.mixer.Sound(buffer=b)
-        _sayings[what] = s
+        sayings[what] = s
         say(what)
 
 
@@ -173,14 +172,11 @@ def main():
                         State.currentGroup[State.currentSample].play()
                     elif intent['intent'] == 'Playback':
                         State.currentState = State.PLAYING
-<<<<<<< HEAD
                     elif intent['intent'] == 'YesNo':
                         if 'concepts' not in intent or 'Instruments' not in intent['concepts']: 
                             say("No, sorry. Currently this instument is not in our database.")
                         elif 'Instruments' in intent['concepts']:
                             say("Yes")
-=======
->>>>>>> origin/master
                 except:
                     say("Ups, something crashed.")
             #
