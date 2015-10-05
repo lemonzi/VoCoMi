@@ -1,8 +1,8 @@
 import numpy
 
 mean = 20
-d = 0.95
-th = -20
+d = 0.99
+th = -30
 count = 0
 
 def clear():
