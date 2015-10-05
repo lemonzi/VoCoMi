@@ -12,7 +12,7 @@ Installation
 2. Make sure you have Python3. You might have to run `pip3` and `python3` all the time (default if you use homebrew and don't touch anything).
 3. Install Myo Connect and check that it works.
 4. Get Nuance user and application API keys, and put them in `credentials.json`.
-5. Install the six`, `aiohttp`, `pyaudio`, and `numpy` Python packages from `pip`. Installl also the `pygame` (look for instructions online) and `pyspeex` (https://github.com/NuanceDev/pyspeex) packages. You may also have to install the `portaudio` and `speex` system packages beforehand (both available on homebrew).
+5. Install the `six`, `aiohttp`, `pyaudio`, and `numpy` Python packages from `pip`. Installl also the `pygame` (look for instructions online) and `pyspeex` (https://github.com/NuanceDev/pyspeex) packages. You may also have to install the `portaudio` and `speex` system packages beforehand (both available on homebrew).
 6. Run `python3 vocomi.py` or `python vocomi.py`, depending on your setup.
 7. Enjoy!
 
