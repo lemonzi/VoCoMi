@@ -1,5 +1,4 @@
-VoCoMi
-======
+![VoCoMi](https://raw.githubusercontent.com/lemonzi/VoCoMi/master/logo.png)
 
 VoCoMi (Voice-Controlled Mixer) is our hack submitted to the WearHacks Montreal 2015 Hackathon. It is a music sequencer for visually impaired people that does not require any visual feedback to be operated.
 
