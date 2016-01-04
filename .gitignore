@@ -1,7 +1,9 @@
 .egg*
 env/
 *.pyc
+__pycache__/
 
 pygame/
+local/
 
 credentials.json
